@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+#  Sets CLASSPATH and runs whatever class - put it
+#  as the first argument. Use this script until you create
+#  a specialized script for your application.
+#
+#  $Id: run-any-client,v 1.2 2007/03/25 18:55:17 marsenger Exp $
+# ----------------------------------------------------
+
+PROJECT_HOME=@PROJECT_HOME@
+LIBS_PATH=@PROJECT_DEPS@
+
+CLASSPATH=${PROJECT_HOME}/build/classes
+CLASSPATH=`echo ${PROJECT_HOME}/build/lib/*.jar | tr ' ' ':'`:$CLASSPATH
+CLASSPATH=$LIBS_PATH:$CLASSPATH
+
+exec java -cp $CLASSPATH @LOG4J@ "$@"

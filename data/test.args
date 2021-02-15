@@ -1,0 +1,15 @@
+# this is a test file
+
+-name
+Martin
+
+"was double quoted"
+'was single quoted'
+"was half double quoted
+was half single quoted'
+next is empty
+""""
+next is also empty
+''
+end
+

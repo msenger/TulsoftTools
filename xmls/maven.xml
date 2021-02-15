@@ -1,0 +1,104 @@
+<!-- ================================================================== -->
+<!--                            Maven                                   -->
+<!-- ================================================================== -->
+
+<!-- This is an XML entity included in ../build.xml file -->
+<!-- $Id -->
+
+<!-- 
+
+It contains general Maven-related stuff which usually stays unchanged
+for all projects. All project specific dependencies are expected to be
+in file xmls/project.pom.
+
+The optional other files (project-*.pom) contain dependencies of
+project parts: one file per one jar file created by this
+project). They are used for uploading jar files to the Maven
+repositories - the uploading tasks are in file upload2maven.xml.
+
+-->
+
+<!--
+<property name="bio.maven.repository"     value="http://biomoby.org/m2repo/"/>
+<property name="bio.maven.repository.scp" value="scp://biomoby.org/home/websites/biomoby.org/html/m2repo/"/>
+<property name="bio.maven.auth.username"  value="${user.home}"/>
+<property name="bio.maven.auth.privkey"   value="${user.home}/.ssh/id_rsa"/>
+-->
+
+<!-- what Maven-Ant library is needed -->
+<property name="maven.ant.file" value="maven-artifact-ant-2.0.4-dep.jar"/>
+
+<!-- ================================================================== -->
+<!--      Bootstrap - a task getting here the Maven-Ant library         -->
+<!-- ================================================================== -->
+<target name="bootstrap" description="Fetch Maven library - needed only the first time.">
+
+  <!-- where is Maven-Ant library -->
+  <property name="maven.ant.dir" value="http://apache.hoxt.com/maven/binaries"/>
+
+  <!-- get it -->
+  <get
+    src="${maven.ant.dir}/${maven.ant.file}"
+    dest="${lib.dir}/${maven.ant.file}"
+    verbose="true"
+    usetimestamp="true"/>
+  
+</target>
+
+<!-- ================================================================== -->
+<!--      Check if we have already fetched Maven-Ant library            -->
+<!-- ================================================================== -->
+<target name="checkmaven"
+  description="Check whether the bootstrap task was done.">
+
+  <condition property="maven.lib.present">
+    <available file="${lib.dir}/${maven.ant.file}"/>
+  </condition>
+  <fail unless="maven.lib.present">Sorry...
+    Missing Maven library. It can be fetched from the Internet.
+    Type: ant bootstrap
+    This is needed to be done only once.
+  </fail>
+
+</target>
+
+<!-- ================================================================== -->
+<!--                     Initialize Maven tasks                         -->
+<!-- ================================================================== -->
+<target name="initmaven" depends="checkmaven"
+  description="Initialize usage of Maven">
+
+  <typedef
+    resource="org/apache/maven/artifact/ant/antlib.xml"
+    uri="urn:maven-artifact-ant">
+    <classpath>
+      <pathelement location="${lib.dir}/${maven.ant.file}" />
+    </classpath>
+  </typedef>
+
+  <!-- ADD or REMOVE lines here, depending on your project[-*].pom files -->
+  <!-- project.pom       ... everything together
+       project-core.pom  ... everything except SOAP tools
+       project-soap.pom  ... only SOAP tools
+       -->
+  <artifact:pom id="maven.project"      file="xmls/project.pom"/>
+  <artifact:pom id="maven.project-core" file="xmls/project-core.pom"/>
+  <artifact:pom id="maven.project-soap" file="xmls/project-soap.pom"/>
+
+  <artifact:remoteRepository
+    id="bio.maven.repository"
+    url="${bio.maven.repository}"/>
+
+  <!-- These are dependencies needed to the whole project:
+       To compile and to add correct CLASSPATH into run-time scripts -->
+  <artifact:dependencies
+    pathId="dependency.classpath"
+    filesetId="dependency.fileset">
+    <remoteRepository refid="bio.maven.repository" />
+    <pom refid="maven.project"/>
+  </artifact:dependencies>
+
+  <!-- how to deploy -->
+  <property name="bio.maven.install.provider" value="wagon-ssh"/>
+
+</target>

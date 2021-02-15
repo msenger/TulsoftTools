@@ -1,0 +1,12 @@
+# If you want to specify some local properties that will be used by
+# Ant tasks, copy this file into 'build.properties' and edit it as you
+# need.
+#
+# $Id: build.properties.template,v 1.2 2007/03/25 18:55:13 marsenger Exp $
+# --------------------------------------------------------------------
+
+# --- if you wish to use external ssh
+#     (because the built-in one often does not work)
+#maven.install.provider = wagon-ssh-external
+#maven.repository.scp = scpexe://maven.generationcp.org/home/websites/biomoby.org/html/m2repo/
+

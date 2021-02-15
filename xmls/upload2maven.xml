@@ -1,0 +1,41 @@
+<!-- ================================================================== -->
+<!--                  Uploading to Maven repository                     -->
+<!-- ================================================================== -->
+
+<!-- This is an XML entity included in ../build.xml file -->
+<!-- $Id -->
+
+<!-- 
+
+It contains tasks that deploy (upload) project specific jar files to a
+Maven repository. It uses files project[-*].pom where are details what
+to upload and what are project dependencies.
+
+The tasks here usually depends on task from the main ../build.xml that
+creates project jar files.
+
+-->
+
+<!-- ================================================================== -->
+<!--                      Local Maven repository                        -->
+<!-- ================================================================== -->
+<target name="minstall" depends="minstall-core,minstall-soap,minstall-all"
+  description="Install all parts of this project in a local Maven repository"/>
+
+<target name="minstall-core" depends="initmaven,jars">
+  <artifact:install file="${build.lib}/${maven.project-core.artifactId}.jar">
+    <pom refid="maven.project-core"/>
+  </artifact:install>
+</target>
+
+<target name="minstall-soap" depends="initmaven,jars">
+  <artifact:install file="${build.lib}/${maven.project-soap.artifactId}.jar">
+    <pom refid="maven.project-soap"/>
+  </artifact:install>
+</target>
+
+<target name="minstall-all" depends="initmaven,jars">
+  <artifact:install file="${build.lib}/${maven.project.artifactId}.jar">
+    <pom refid="maven.project"/>
+  </artifact:install>
+</target>

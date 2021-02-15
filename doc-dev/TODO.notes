@@ -1,0 +1,8 @@
+* deprecate some contents of FileUtils and StringUtils (because of
+Apache Commons) (perhaps even change their class names)
+
+* what about Sorter?
+
+* re-introduce "Testing" clients?
+
+* documentation

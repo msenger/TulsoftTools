@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+<!DOCTYPE project [
+  <!ENTITY maven        SYSTEM "xmls/maven.xml">
+  <!ENTITY upload2maven SYSTEM "xmls/upload2maven.xml">
+]>
+
+<!-- =================== Build for PROJECT =================== -->
+<!-- $Id: build.xml,v 1.6 2007/03/31 11:11:50 marsenger Exp $ -->
+
+<project name="alltools2: Java general tools 2"
+  default="compile" basedir="."
+  xmlns:artifact="urn:maven-artifact-ant">
+
+  <!-- ================================================================== -->
+  <!--                            Properties                              -->
+  <!-- ================================================================== -->
+
+  <!-- General properties -->
+  <property environment="env"/>
+  <property name="project.home" location="."/>
+  <!-- Give user a chance to override without editing this file
+       (and without typing -D each time it compiles it) -->
+  <property file="${project.home}/build.properties"/>
+  <property file="${user.home}/build.properties"/>
+
+  <!-- The directories containing sources and supporting files -->
+  <property name="src.root"     value="src"/>
+  <property name="src.main"     value="${src.root}/main"/>
+  <property name="src.etc"      value="${src.root}/etc"/>
+
+  <!-- Properties for the documentation and distribution -->
+  <property name="docs.dir"            value="${project.home}/docs"/>
+  <property name="javadoc.dir"         value="${docs.dir}/API"/>
+
+  <!-- The directory containing third-party libraries
+       (those that are not in a Maven repository) -->
+  <property name="lib.dir" value="lib"/>
+
+  <!-- Temporary build directories -->
+  <property name="build.dir"      value="build"/>
+  <property name="build.classes"  value="${build.dir}/classes"/>
+  <property name="build.lib"      value="${build.dir}/lib"/>
+  <property name="build.run"      value="${build.dir}/run"/>
+
+  <!-- log4j properties -->
+  <property name="log4j.configuration"  value="${project.home}/log4j.properties"/>
+  <condition property="log4j.present">
+    <available file="${log4j.configuration}"/>
+  </condition>
+
+  <condition property="log4j.value" value="-Dlog4j.configuration=file:${log4j.configuration}">
+    <isset property="log4j.present"/>
+  </condition>
+  <condition property="log4j.value" value="">
+    <not><isset property="log4j.present"/></not>
+  </condition>
+
+  <!-- Classpath (without classes fetched from Maven repositories) -->
+  <path id="build.classpath">
+    <pathelement location="${build.classes}"/>
+    <fileset dir="${lib.dir}">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+
+  <!-- Excludes for compilation and API documentation -->
+  <property name="project.excludes" value="**/notyet/**"/>
+
+  <!-- ================================================================== -->
+  <!--                            Targets/Tasks                           -->
+  <!-- ================================================================== -->
+
+  <!-- ================================================================== -->
+  <!--                            Maven                                   -->
+  <!-- ================================================================== -->
+  &maven;
+  &upload2maven;
+
+  <!-- ================================================================== -->
+  <!-- Initialize (whatever needs to be done)                             -->
+  <!-- ================================================================== -->
+  <target name="init" depends="initmaven">
+    <!-- Set current date/time -->
+    <tstamp>
+      <format property="TODAY_LONG"  pattern="EEE MMM d HH:mm:ss z yyyy"/>
+      <format property="TODAY_SHORT" pattern="yyyy-MM-dd"/>
+    </tstamp>
+
+    <!-- Create the build directories prior to the compile target -->
+    <mkdir dir="${build.dir}"/>
+    <mkdir dir="${build.classes}"/>
+    <mkdir dir="${build.lib}"/>
+    <mkdir dir="${build.run}"/>
+
+    <!-- Files dependent on the timestamp of the local build.properties -->
+    <dependset>
+      <srcfileset dir="${project.home}" includes="build.properties"/>
+      <srcfileset dir="${user.home}"    includes="build.properties"/>
+      <targetfileset dir="${build.run}" includes="run-* source* cp.bat"/>
+    </dependset>
+    
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Compiles everything                                                -->
+  <!-- ================================================================== -->
+  <target name="compile" depends="config"
+    description="Compile all source code (default).">
+
+    <javac srcdir="${src.main}"
+      destdir="${build.classes}"
+      debug="true"
+      debuglevel="lines,vars,source"
+      excludes="${project.excludes}">
+      <compilerarg value="-Xlint:unchecked"/>
+      <!--      <compilerarg value="-Xlint:deprecation"/> -->
+      <classpath refid="build.classpath"/>
+      <classpath refid="dependency.classpath"/>
+    </javac>
+
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Configuration                                                      -->
+  <!-- ================================================================== -->
+  <target name="config" depends="init"
+    description="Make all necessary configuration steps.">
+
+    <copy todir="${build.classes}">
+      <!--      <fileset dir="${src.main}" includes="**/help/"/> -->
+      <fileset dir="${src.main}" includes="**/images/"/>
+    </copy>
+
+    <!--    
+    <copy file="${project.home}/log4j.properties.template"
+      tofile="${build.classes}/log4j.properties"/>
+    -->
+
+    <pathconvert property="libs.path" refid="dependency.fileset"/>
+    <pathconvert property="libs.path.2">
+      <path>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar"/>
+          <exclude name="maven-artifact-ant-2.0.4-dep.jar"/>
+        </fileset>
+      </path>
+    </pathconvert>
+
+    <copy todir="${build.run}">
+      <fileset dir="${src.etc}" includes="run-* source.me* cp.bat"/>
+      <filterset>
+        <filter token="PROJECT_HOME" value="${basedir}"/>
+        <filter token="LOG4J"        value="${log4j.value}"/>
+        <filter token="PROJECT_DEPS" value="${libs.path}${path.separator}${libs.path.2}"/>
+      </filterset>
+    </copy>
+    <chmod dir="${build.run}" includes="run-*" perm="a+rx"/>
+    
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Clean-up                                                           -->
+  <!-- ================================================================== -->
+  <target name="clean"  depends="cleanapi"
+    description="Remove all generated files.">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="cleanapi">
+    <delete quiet="true" includeEmptyDirs="true">
+      <fileset dir="${javadoc.dir}" excludes=".cvsignore*"/>
+    </delete>
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- Builds jar files with project classes                              -->
+  <!-- ================================================================== -->
+  <target name="jars" depends="compile"
+    description="Create all jar files related to this project.">
+
+    <property name="released.date" value="${TODAY_SHORT}"/>
+
+    <property name="jar.all.name"   value="${maven.project.artifactId}.jar"/>
+    <property name="jar.core.name"  value="${maven.project-core.artifactId}.jar"/>
+    <property name="jar.soap.name"  value="${maven.project-soap.artifactId}.jar"/>
+
+    <jar destfile="${build.lib}/${jar.all.name}"> 
+      <fileset dir="${build.classes}"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Released-Date" value="${released.date}"/>
+      </manifest>
+    </jar>
+
+    <jar destfile="${build.lib}/${jar.core.name}"> 
+    <fileset dir="${build.classes}" excludes="org/tulsoft/tools/soap/"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Released-Date" value="${released.date}"/>
+      </manifest>
+    </jar>
+
+    <jar destfile="${build.lib}/${jar.soap.name}"> 
+    <fileset dir="${build.classes}" includes="org/tulsoft/tools/soap/"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Released-Date" value="${released.date}"/>
+      </manifest>
+    </jar>
+
+  </target>
+
+  <!-- =================================================================== -->
+  <!-- Creates the API documentation:                                      -->
+  <!-- =================================================================== -->
+  <target name="docs" depends="compile,cleanapi"
+    description="Generate API documentation.">
+    
+    <javadoc
+      additionalparam="-quiet"
+      packagenames="org.tulsoft.*"
+      destdir="${javadoc.dir}"
+      defaultexcludes="yes"
+      breakiterator="yes"
+      windowtitle="alltools2: General Java Tools"
+      doctitle="alltools2: General Java Tools"
+      author="true"
+      version="true"
+      use="true"
+      public="true">
+      <classpath refid="build.classpath"/>
+      <classpath refid="dependency.classpath"/>
+      
+      <!-- included files -->
+      <sourcepath>
+        <pathelement location="${src.main}"/>
+      </sourcepath>
+      
+      <header><![CDATA[<font size='-1'>Generated: ${TODAY_LONG}</font>]]></header>
+      <bottom><![CDATA[<font size='-1'><a href='mailto:martin.senger@gmail.com?subject=alltools2'>Submit a bug or feature</a><BR>Generated: ${TODAY_LONG}</font>]]></bottom>
+      
+    </javadoc>
+
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- pack Java API                                                      -->
+  <!-- ================================================================== -->
+  <target name="packapi" depends="docs"
+    description="Pack together API docs so it can be moved somewhere else.">
+    <property name="pack.api.file" value="alltools2.api"/>
+    <tar
+      destfile="${build.dir}/${pack.api.file}.tar.gz"
+      basedir="${javadoc.dir}"
+      excludes=".cvsignore*"
+      compression="gzip"
+      longfile="gnu"/>
+    <zip
+      destfile="${build.dir}/${pack.api.file}.zip"
+      excludes=".cvsignore*"
+      basedir="${javadoc.dir}"/>
+  </target>
+
+  <!-- ================================================================== -->
+  <!-- all: do everything (except deploying to Maven repository) -->
+  <!-- ================================================================== -->
+  <target name="all" depends="clean,compile,jars,docs"
+    description="Clean, compile, etc.."/>
+
+  <!-- ================================================================== -->
+  <!-- Just for testing...                                                -->
+  <!-- ================================================================== -->
+  <target name="testing" depends="init">
+    <echo message="${TODAY_LONG}"/>
+    <echo message="${TODAY_SHORT}"/>
+  </target>
+
+</project>
