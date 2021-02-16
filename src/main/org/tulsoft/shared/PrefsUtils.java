@@ -30,7 +30,6 @@ import java.util.Arrays;
  * <tt>java.util.prefs</tt>). <p>
  *
  * @author <A HREF="mailto:martin.senger@gmail.com">Martin Senger</A>
- * @version $Id: PrefsUtils.java,v 1.1 2005/09/18 09:25:41 marsenger Exp $
  */
 public abstract class PrefsUtils {
 

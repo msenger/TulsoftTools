@@ -350,7 +350,7 @@ public abstract class StringUtils {
 
     /**
      * Turn a string into a the same string starting with uppercase, rest all
-     * lower case. E.g. "aBc" => "Abc"
+     * lower case. E.g. "aBc" =&gt; "Abc"
      * @param string The string to be operated on
      * @return                  The capitalized string, or the same one if
      *                          it was null or empty

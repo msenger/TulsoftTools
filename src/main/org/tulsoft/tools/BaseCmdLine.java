@@ -180,7 +180,7 @@ public class BaseCmdLine {
      *        new BaseCmdLine (args,
      *                         new String[] {"-name", "-age", "-v", "-foo"},
      *                         new int[]    {2,        1,      1,    0} );
-     *     if (cmd.params.length > 0)
+     *     if (cmd.params.length &gt; 0)
      *        System.err.println ("Error on cmd line...");
      *     ...
      *   }

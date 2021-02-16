@@ -18,15 +18,10 @@ repositories - the uploading tasks are in file upload2maven.xml.
 
 -->
 
-<!--
-<property name="bio.maven.repository"     value="http://biomoby.org/m2repo/"/>
-<property name="bio.maven.repository.scp" value="scp://biomoby.org/home/websites/biomoby.org/html/m2repo/"/>
-<property name="bio.maven.auth.username"  value="${user.home}"/>
-<property name="bio.maven.auth.privkey"   value="${user.home}/.ssh/id_rsa"/>
--->
+<property name="central.maven.repository" value="https://repo1.maven.org/maven2/"/>
 
 <!-- what Maven-Ant library is needed -->
-<property name="maven.ant.file" value="maven-artifact-ant-2.0.4-dep.jar"/>
+<property name="maven.ant.file" value="maven-ant-tasks-2.1.3.jar"/>
 
 <!-- ================================================================== -->
 <!--      Bootstrap - a task getting here the Maven-Ant library         -->
@@ -34,7 +29,7 @@ repositories - the uploading tasks are in file upload2maven.xml.
 <target name="bootstrap" description="Fetch Maven library - needed only the first time.">
 
   <!-- where is Maven-Ant library -->
-  <property name="maven.ant.dir" value="http://apache.hoxt.com/maven/binaries"/>
+  <property name="maven.ant.dir" value="https://archive.apache.org/dist/maven/ant-tasks/2.1.3/binaries/"/>
 
   <!-- get it -->
   <get
@@ -86,19 +81,26 @@ repositories - the uploading tasks are in file upload2maven.xml.
   <artifact:pom id="maven.project-soap" file="xmls/project-soap.pom"/>
 
   <artifact:remoteRepository
-    id="bio.maven.repository"
-    url="${bio.maven.repository}"/>
+    id="central.maven.repository"
+    url="${central.maven.repository}"/>
 
+  <!-- There was a need to change the URL of the central Maven repository
+       to the secure https protocol. I have not found the place where to make
+       such change, therefore, I used 'remoteRepository' (see below).
+       It workd, howver, it may not be the right way to do. Perhaps the
+       better (more correct) way would be to use (instead of maven-ant-tasks)
+       the https://maven.apache.org/plugins/maven-resources-plugin/.
+       Also here: https://blog.sonatype.com/central-repository-moving-to-https
+       -->
+              
   <!-- These are dependencies needed to the whole project:
-       To compile and to add correct CLASSPATH into run-time scripts -->
+       To compile and to add correct CLASSPATH into run-time scripts
+       -->
   <artifact:dependencies
     pathId="dependency.classpath"
     filesetId="dependency.fileset">
-    <remoteRepository refid="bio.maven.repository" />
+    <remoteRepository refid="central.maven.repository" />
     <pom refid="maven.project"/>
   </artifact:dependencies>
-
-  <!-- how to deploy -->
-  <property name="bio.maven.install.provider" value="wagon-ssh"/>
 
 </target>

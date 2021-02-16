@@ -28,7 +28,7 @@ import java.io.*;
 
 /********************************************************************
  * This class contains several common utilities helping with dealing
- * XML parsers conforming SAX 2.0 specificatioin. Mostly there are
+ * XML parsers conforming SAX 2.0 specification. Mostly there are
  * small wrappers for various pieces of SAX parsers.
  * <P>
  * This class replaces now deprecated class {link XMLUtils}. The old
@@ -45,7 +45,7 @@ public abstract class XMLUtils2 {
      * for sequence <tt>makeParser</tt>, <tt>setContentHandler</tt> and
      * <tt>setErrorHandler</tt>, also wrapping all exceptions into one.
      * <P>
-     * It uses {@link #DEFAULT_PROP_FOR_PARSER} to find a class name
+     * It uses default class name <b>org.apache.xerces.parsers.SAXParser</b>
      * representing a SAX parser.
      * <P>
      * @param outputHandler is an instance of class implementing
@@ -68,8 +68,7 @@ public abstract class XMLUtils2 {
      * <P>
      *
      * @param parserClass is a class representing SAX parser which
-     *        is being created; if it is null it tries property
-     *        {@link #DEFAULT_PROP_FOR_PARSER} - if it also fails it uses
+     *        is being created; if it is null it uses
      *        default class name <b>org.apache.xerces.parsers.SAXParser</b>
      * @param outputHandler is an instance of class implementing
      *        content and error handler for SAX parser - to become
